@@ -1,12 +1,36 @@
 ﻿@page "/table"
 
-    @foreach (var card in deck)
-    {
-       <PlayingCard Card="card"></PlayingCard>
-    }
+<div class="row">
+    <div class="col">
+        <ul class="list-group">
+            <li class="list-group-item active">Player 1</li>
+            <li class="list-group-item">Player 2</li>
+            <li class="list-group-item">Player 3</li>
+            <li class="list-group-item">Player 4</li>
+        </ul>
+    </div>
+    <div class="col">
+        <h1>Draw Pile</h1>
 
+        <div class="pcard back">
+            <span>@deck.Count()</span>
+        </div>
+    </div>
+    <div class="col">
+        <h1>Discard Pile</h1>
+        <PlayingCard Card="singleCard"></PlayingCard>
+    </div>
+</div>
+
+<h2>Demo all cards</h2>
+@foreach (var card in deck)
+{
+    <PlayingCard Card="card"></PlayingCard>
+}
 
 @code {
+
+    Card singleCard = new Card(CardValue.Ace, CardSuit.Clubs);
 
     List<Card> deck = CardUtilities.CreateDeck().Shuffle();
 
