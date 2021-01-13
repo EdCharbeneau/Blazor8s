@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Blazor8s.Shared
 {
-    public enum Suits
+    public enum CardSuit
     {
         Hearts,
         Diamonds,

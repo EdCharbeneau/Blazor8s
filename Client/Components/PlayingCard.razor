@@ -1,21 +1,30 @@
 ﻿<div class="pcard @CssFaceDown" @onclick="HandleClick">
-    <div class="suit-top">@Card.Value</div>
+    <div class="suit-top">@Value @Suit</div>
     <div class="middle-pips"></div>
-    <div class="suit-bottom">@Card.Value</div>
+    <div class="suit-bottom">@Value @Suit</div>
 </div>
 
 @code {
+
     [Parameter] public bool IsFaceDown { get; set; }
     [Parameter] public Card Card { get; set; }
+    string Value => ToDisplayValue(Card.Value);
+    string Suit => ToSymbol(Card.Suit);
 
-    string ToSymbol(Suits suits) => suits switch
+    string ToSymbol(CardSuit suits) => suits switch
     {
-        Suits.Clubs => "♣",
-        Suits.Spades => "♠",
-        Suits.Hearts => "♥",
-        Suits.Diamonds => "♦",
+        CardSuit.Clubs => "♣",
+        CardSuit.Spades => "♠",
+        CardSuit.Hearts => "♥",
+        CardSuit.Diamonds => "♦",
         _ => ""
     };
+
+    string ToDisplayValue(CardValue value)
+    {
+        bool isFaceCard = value == CardValue.Ace || value > CardValue.Ten;
+        return isFaceCard ? value.ToString()[0].ToString() : ((int)value).ToString();
+    }
 
     string CssFaceDown => IsFaceDown ? "back" : null;
 

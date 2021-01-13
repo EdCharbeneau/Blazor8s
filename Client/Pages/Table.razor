@@ -1,12 +1,13 @@
-﻿@using gm = Blazor8s.Shared
-@page "/table"
+﻿@page "/table"
 
-    @foreach (var card in game.Deck)
+    @foreach (var card in deck)
     {
        <PlayingCard Card="card"></PlayingCard>
     }
 
 
 @code {
-    gm.Game game = new();
+
+    List<Card> deck = CardUtilities.CreateDeck().Shuffle();
+
 }
