@@ -1,0 +1,12 @@
+﻿@using gm = Blazor8s.Shared
+@page "/table"
+
+    @foreach (var card in game.Deck)
+    {
+       <PlayingCard Card="card"></PlayingCard>
+    }
+
+
+@code {
+    gm.Game game = new();
+}

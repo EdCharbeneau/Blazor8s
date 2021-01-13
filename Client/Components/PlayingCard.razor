@@ -1,0 +1,26 @@
+﻿<div class="pcard @CssFaceDown" @onclick="HandleClick">
+    <div class="suit-top">@Card.Value</div>
+    <div class="middle-pips"></div>
+    <div class="suit-bottom">@Card.Value</div>
+</div>
+
+@code {
+    [Parameter] public bool IsFaceDown { get; set; }
+    [Parameter] public Card Card { get; set; }
+
+    string ToSymbol(Suits suits) => suits switch
+    {
+        Suits.Clubs => "♣",
+        Suits.Spades => "♠",
+        Suits.Hearts => "♥",
+        Suits.Diamonds => "♦",
+        _ => ""
+    };
+
+    string CssFaceDown => IsFaceDown ? "back" : null;
+
+    void HandleClick()
+    {
+        IsFaceDown = !IsFaceDown;
+    }
+}
