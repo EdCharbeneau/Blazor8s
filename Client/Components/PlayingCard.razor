@@ -1,6 +1,14 @@
 ﻿<div class="pcard @CssFaceDown" @onclick="HandleClick">
     <div class="suit-top">@Value @Suit</div>
-    <div class="middle-pips"></div>
+    <div class="middle-pips">
+        @if (ShowPips)
+        {
+            @for (int i = 0; i < (int)Card.Value; i++)
+            {
+                <span class="pip">♣</span>
+            }
+        }
+    </div>
     <div class="suit-bottom">@Value @Suit</div>
 </div>
 
@@ -10,6 +18,7 @@
     [Parameter] public Card Card { get; set; }
     string Value => ToDisplayValue(Card.Value);
     string Suit => ToSymbol(Card.Suit);
+    bool ShowPips => Card.Value < CardValue.Jack;
 
     string ToSymbol(CardSuit suits) => suits switch
     {
