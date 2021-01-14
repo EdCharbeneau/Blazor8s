@@ -3,37 +3,47 @@
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
-<div class="form-group">
-    <label>
-        User:
-        <input @bind="userName" />
-    </label>
-</div>
-<button @onclick="JoinGame" disabled="@(!IsConnected)">Join Game</button>
+@if (!HasJoined)
+{
+    <div class="form-group">
+        <label>
+            User:
+            <input @bind="userName" />
+        </label>
+    </div>
+
+    <button @onclick="JoinGame" disabled="@(!IsConnected)">Join Game</button>
+
+}
 
 @code {
-
     string userName;
+    bool HasJoined = false;
 
-    public bool IsConnected => false;// hubConnection.State == HubConnectionState.Connected;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
 
     private HubConnection hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
-        //hubConnection = new HubConnectionBuilder()
-        //    //.WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
-        //    .Build();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+            .Build();
 
+        hubConnection.On(nameof(IGameHub.JoinedGame), JoinedGame);
+
+        await hubConnection.StartAsync();
     }
 
-    void JoinGame()
+    void JoinedGame()
     {
-
+        HasJoined = true;
+        StateHasChanged();
     }
 
+    Task JoinGame() => hubConnection.SendAsync("PlayerJoinGame", userName);
     public async ValueTask DisposeAsync()
     {
-        //await hubConnection.DisposeAsync();
+        await hubConnection.DisposeAsync();
     }
 }

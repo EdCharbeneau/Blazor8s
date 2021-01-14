@@ -1,12 +1,21 @@
 ﻿@page "/table"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+@if (HasJoinedGame)
+{
+    <h1>Joined Game</h1>
+}
 
 <div class="row">
     <div class="col">
+        <h1>Players</h1>
         <ul class="list-group">
-            <li class="list-group-item active">Player 1</li>
-            <li class="list-group-item">Player 2</li>
-            <li class="list-group-item">Player 3</li>
-            <li class="list-group-item">Player 4</li>
+            @foreach (var player in players)
+            {
+                <li class="list-group-item">@player</li>
+            }
         </ul>
     </div>
     <div class="col">
@@ -22,16 +31,42 @@
     </div>
 </div>
 
-<h2>Demo all cards</h2>
-@foreach (var card in deck)
-{
-    <PlayingCard Card="card"></PlayingCard>
-}
+@code {    
 
-@code {
+    List<string> players = new();
+    private HubConnection hubConnection;
+    bool HasJoinedGame = false;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+              .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
+              .Build();
+
+        hubConnection.On("JoinedGame", () =>
+        {
+            HasJoinedGame = true;
+            StateHasChanged();
+        });
+
+        hubConnection.On<string>(nameof(IGameHub.PlayerJoined), PlayerJoined); 
+
+        await hubConnection.StartAsync();
+
+        await hubConnection.SendAsync("TableJoinGame");
+
+    }
+
+    void PlayerJoined(string player) {
+        players.Add(player);
+        StateHasChanged();
+    }
 
     Card singleCard = new Card(CardValue.Ace, CardSuit.Clubs);
 
     List<Card> deck = CardUtilities.CreateDeck().Shuffle();
-
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
 }

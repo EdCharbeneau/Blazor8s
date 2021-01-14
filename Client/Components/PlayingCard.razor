@@ -5,8 +5,10 @@
         {
             @for (int i = 0; i < (int)Card.Value; i++)
             {
-                <span class="pip">♣</span>
+                <span class="pip">@Suit</span>
             }
+        } else {
+            <span class="pip face-card-pip">@Suit</span>
         }
     </div>
     <div class="suit-bottom">@Value @Suit</div>
@@ -18,7 +20,7 @@
     [Parameter] public Card Card { get; set; }
     string Value => ToDisplayValue(Card.Value);
     string Suit => ToSymbol(Card.Suit);
-    bool ShowPips => Card.Value < CardValue.Jack;
+    bool ShowPips => Card.Value != CardValue.Ace && Card.Value < CardValue.Jack;
 
     string ToSymbol(CardSuit suits) => suits switch
     {
