@@ -22,21 +22,31 @@
         <h1>Draw Pile</h1>
 
         <div class="pcard back">
-            <span>@deck.Count()</span>
+            <span>@deckCount</span>
         </div>
     </div>
     <div class="col">
         <h1>Discard Pile</h1>
-        <PlayingCard Card="singleCard"></PlayingCard>
+        @if (discardCard == null)
+        {
+            <span>Game not started</span>
+        }
+        else
+        {
+            <PlayingCard Card="discardCard"></PlayingCard>
+        }
     </div>
 </div>
 
-@code {    
+@code {
 
     List<string> players = new();
     private HubConnection hubConnection;
     bool HasJoinedGame = false;
     public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+    Card discardCard;
+    int deckCount = 52;
+
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
@@ -49,7 +59,10 @@
             StateHasChanged();
         });
 
-        hubConnection.On<string>(nameof(IGameHub.PlayerJoined), PlayerJoined); 
+        hubConnection.On<string>(nameof(IGameHub.PlayerJoined), PlayerJoined);
+        hubConnection.On<int, Card>(nameof(IGameHub.GameStarted), GameStarted);
+        hubConnection.On<Card>(nameof(IGameHub.DiscardPlayed), DiscardPlayed);
+        hubConnection.On<int>(nameof(IGameHub.UpdateDeckCount), UpdateDeckCount);
 
         await hubConnection.StartAsync();
 
@@ -57,14 +70,30 @@
 
     }
 
-    void PlayerJoined(string player) {
+    void GameStarted(int count, Card card)
+    {
+        deckCount = count;
+        discardCard = card;
+        StateHasChanged();
+    }
+    void UpdateDeckCount(int count)
+    {
+        deckCount = count;
+        StateHasChanged();
+    }
+
+    void DiscardPlayed(Card card)
+    {
+        discardCard = card;
+        StateHasChanged();
+    }
+
+    void PlayerJoined(string player)
+    {
         players.Add(player);
         StateHasChanged();
     }
 
-    Card singleCard = new Card(CardValue.Ace, CardSuit.Clubs);
-
-    List<Card> deck = CardUtilities.CreateDeck().Shuffle();
     public async ValueTask DisposeAsync()
     {
         await hubConnection.DisposeAsync();

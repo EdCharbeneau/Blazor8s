@@ -18,6 +18,14 @@
 
     [Parameter] public bool IsFaceDown { get; set; }
     [Parameter] public Card Card { get; set; }
+
+    [Parameter] public EventCallback<Card> OnCardSelected { get; set; }
+    
+    Task HandleClick()
+    {
+        return OnCardSelected.InvokeAsync(Card);
+    }
+
     string Value => ToDisplayValue(Card.Value);
     string Suit => ToSymbol(Card.Suit);
     bool ShowPips => Card.Value != CardValue.Ace && Card.Value < CardValue.Jack;
@@ -39,8 +47,5 @@
 
     string CssFaceDown => IsFaceDown ? "back" : null;
 
-    void HandleClick()
-    {
-        IsFaceDown = !IsFaceDown;
-    }
+
 }
