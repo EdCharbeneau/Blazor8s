@@ -1,6 +1,16 @@
 ﻿<div class="pcard @CssFaceDown" @onclick="HandleClick">
     <div class="suit-top">@Value @Suit</div>
-    <div class="middle-pips"></div>
+    <div class="middle-pips">
+        @if (ShowPips)
+        {
+            @for (int i = 0; i < (int)Card.Value; i++)
+            {
+                <span class="pip">@Suit</span>
+            }
+        } else {
+            <span class="pip face-card-pip">@Suit</span>
+        }
+    </div>
     <div class="suit-bottom">@Value @Suit</div>
 </div>
 
@@ -8,8 +18,17 @@
 
     [Parameter] public bool IsFaceDown { get; set; }
     [Parameter] public Card Card { get; set; }
+
+    [Parameter] public EventCallback<Card> OnCardSelected { get; set; }
+    
+    Task HandleClick()
+    {
+        return OnCardSelected.InvokeAsync(Card);
+    }
+
     string Value => ToDisplayValue(Card.Value);
     string Suit => ToSymbol(Card.Suit);
+    bool ShowPips => Card.Value != CardValue.Ace && Card.Value < CardValue.Jack;
 
     string ToSymbol(CardSuit suits) => suits switch
     {
@@ -28,8 +47,5 @@
 
     string CssFaceDown => IsFaceDown ? "back" : null;
 
-    void HandleClick()
-    {
-        IsFaceDown = !IsFaceDown;
-    }
+
 }

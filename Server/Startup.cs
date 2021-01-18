@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using BlazorSignalRApp.Server.Hubs;
+using Blazor8s.Server.Hubs;
 
 namespace Blazor8s.Server
 {
@@ -23,6 +24,7 @@ namespace Blazor8s.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<GameState>();
             services.AddSignalR();
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -60,6 +62,7 @@ namespace Blazor8s.Server
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<GameHub>("/gamehub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }

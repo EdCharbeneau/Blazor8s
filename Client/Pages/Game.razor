@@ -1,39 +1,34 @@
 @page "/game"
-@using Microsoft.AspNetCore.SignalR.Client
-@inject NavigationManager NavigationManager
-@implements IAsyncDisposable
 
-<div class="form-group">
-    <label>
-        User:
-        <input @bind="userName" />
-    </label>
-</div>
-<button @onclick="JoinGame" disabled="@(!IsConnected)">Join Game</button>
+<span>Cards:@state.Hand.Count()</span>
+<span>@state.SelectedCard</span>
 
-@code {
+@if (!HasJoined)
+{
+    <div class="form-group">
+        <label>
+            User:
+            <input @bind="userName" />
+        </label>
+    </div>
 
-    string userName;
+    <button @onclick="JoinGame" disabled="@(!IsConnected)">Join Game</button>
+}
 
-    public bool IsConnected => false;// hubConnection.State == HubConnectionState.Connected;
+@if (CanStartGame)
+{
 
-    private HubConnection hubConnection;
+    <button @onclick="StartGame">Start Game</button>
 
-    protected override async Task OnInitializedAsync()
+}
+
+@if (state.HasGameStarted)
+{
+    <button @onclick="DrawCard">Draw</button>
+    <button @onclick="PlayCard" disabled="@(state.SelectedCard is null)">Play</button>
+
+    @foreach (var card in state.Hand)
     {
-        //hubConnection = new HubConnectionBuilder()
-        //    //.WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
-        //    .Build();
-
-    }
-
-    void JoinGame()
-    {
-
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        //await hubConnection.DisposeAsync();
+        <PlayingCard Card="card" OnCardSelected="HandleSelectedCard" />
     }
 }
