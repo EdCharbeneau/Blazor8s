@@ -107,3 +107,8 @@ a, .btn-link {
             display: none;
             visibility: hidden;
         }
+
+.pcard.hearts,
+.pcard.diamonds {
+    color: red;
+}
