@@ -1,8 +1,8 @@
+using Blazor8s.Shared;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
-using Blazor8s.Shared;
 
 namespace Blazor8s.Server.Hubs
 {
@@ -15,7 +15,7 @@ namespace Blazor8s.Server.Hubs
         public async Task PlayerJoinGame(string name)
         {
             var player = new Player { Name = name };
-            _state.Players.Add(player);
+            _state.Players[player.Id] = player;
 
             await Groups.AddToGroupAsync(Context.ConnectionId, player.Id.ToString());
             await Clients.Groups("table").PlayerJoined(name);
@@ -24,7 +24,7 @@ namespace Blazor8s.Server.Hubs
 
         public async Task TableJoinGame()
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"table");
+            await Groups.AddToGroupAsync(Context.ConnectionId, "table");
             await Clients.Caller.JoinedGame(Guid.NewGuid());
             //var players = _state.Players;
             //await Clients.All.SendAsync("ReceiveMessage", user, message);
@@ -33,18 +33,18 @@ namespace Blazor8s.Server.Hubs
         public async Task StartGame()
         {
             // Deal Players
-            foreach (var player in _state.Players)
+            for (var i = 0; i < 5; ++i)
             {
-                for (int i = 0; i < 5; i++)
+                foreach (var (_, player) in _state.Players)
                 {
                     player.Hand.Add(_state.Deck.Pop());
                 }
             }
 
             await Task.WhenAll(
-                _state.Players.Select(player => Clients.Group(player.Id.ToString())
-                .AddHand(player.Hand))
-                );
+                _state.Players
+                      .Select(kvp => Clients.Group(kvp.Key.ToString())
+                      .AddHand(kvp.Value.Hand)));
 
             _state.HasGameStarted = true;
             await Clients.All.GameStarted();
@@ -52,10 +52,10 @@ namespace Blazor8s.Server.Hubs
             _state.LastDiscard = _state.Deck.Pop();
             await Clients.Group("table").GameStarted(_state.Deck.Count, _state.LastDiscard);
         }
-        
+
         public async Task DrawCard(Guid id)
         {
-            var player = _state.Players.Find(p => p.Id == id);
+            var player = _state.Players[id];
             var newCard = _state.Deck.Pop();
             player.Hand.Add(newCard);
 
@@ -66,9 +66,8 @@ namespace Blazor8s.Server.Hubs
         public async Task PlayCard(Guid id, Card card)
         {
             // remove card from hand
-            var player = _state.Players.Find(p => p.Id == id);
-            var playerCard = player.Hand.Find(c => c.Value == card.Value && c.Suit == card.Suit);
-            player.Hand.Remove(playerCard);
+            var player = _state.Players[id];
+            player.Hand.Remove(card);
 
             // add to discard
             _state.LastDiscard = card;

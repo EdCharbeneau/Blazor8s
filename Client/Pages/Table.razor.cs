@@ -9,7 +9,7 @@ namespace Blazor8s.Client.Pages
 {
     public partial class Table : IAsyncDisposable
     {
-        List<string> _players = new();
+        readonly List<string> _players = new();
         HubConnection _hubConnection;
         bool _hasJoinedGame = false;
         Card _discardCard;
@@ -38,7 +38,6 @@ namespace Blazor8s.Client.Pages
             _hubConnection.On<int>(nameof(IGameHub.UpdateDeckCount), UpdateDeckCount);
 
             await _hubConnection.StartAsync();
-
             await _hubConnection.SendAsync("TableJoinGame");
 
         }

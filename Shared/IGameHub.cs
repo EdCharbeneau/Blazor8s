@@ -10,7 +10,7 @@ namespace Blazor8s.Shared
         Task PlayerJoined(string player);
         Task GameStarted(/*game id*/);
         Task GameStarted(int deckCount, Card discardCard);
-        Task AddHand(List<Card> hand);
+        Task AddHand(ICollection<Card> hand);
         Task AddCardToHand(Card card);
         Task DiscardPlayed(Card card);
         Task UpdateDeckCount(int deckCount);

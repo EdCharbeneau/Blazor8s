@@ -10,18 +10,16 @@ namespace Blazor8s.Client.Pages
 
     public partial class Game : IAsyncDisposable
     {
-        [Inject] NavigationManager NavigationManager { get; set; }
-
         string _userName;
         bool _hasJoined = false;
-
         bool CanStartGame => _hasJoined && !_state.HasGameStarted;
+        readonly ClientGameState _state = new();
+        HubConnection _hubConnection;
 
-        ClientGameState _state = new();
+        [Inject]
+        NavigationManager NavigationManager { get; set; }
 
         public bool IsConnected => _hubConnection.State == HubConnectionState.Connected;
-
-        private HubConnection _hubConnection;
 
         protected override async Task OnInitializedAsync()
         {
@@ -31,21 +29,22 @@ namespace Blazor8s.Client.Pages
 
             _hubConnection.On<Guid>(nameof(IGameHub.JoinedGame), JoinedGame);
             _hubConnection.On(nameof(IGameHub.GameStarted), GameStarted);
-            _hubConnection.On<List<Card>>(nameof(IGameHub.AddHand), AddHand);
+            _hubConnection.On<HashSet<Card>>(nameof(IGameHub.AddHand), AddHand);
             _hubConnection.On<Card>(nameof(IGameHub.AddCardToHand), AddCardToHand);
             _hubConnection.On<Card>(nameof(IGameHub.DiscardPlayed), DiscardPlayed);
+
             await _hubConnection.StartAsync();
         }
 
         void DiscardPlayed(Card card)
         {
             _state.SelectedCard = null;
-            var playerCard = _state.Hand.Find(c => c.Value == card.Value && c.Suit == card.Suit);
-            _state.Hand.Remove(playerCard);
+            _state.Hand.Remove(card);
+
             StateHasChanged();
         }
 
-        void HandleSelectedCard(Card card) => 
+        void HandleSelectedCard(Card card) =>
             _state.SelectedCard = _state.SelectedCard == card ? null : card;
 
         void JoinedGame(Guid id)
@@ -55,7 +54,7 @@ namespace Blazor8s.Client.Pages
             StateHasChanged();
         }
 
-        void AddHand(List<Card> hand) => _state.Hand = hand;
+        void AddHand(HashSet<Card> hand) => _state.Hand = hand;
 
         void AddCardToHand(Card card)
         {
@@ -63,7 +62,9 @@ namespace Blazor8s.Client.Pages
             StateHasChanged();
         }
 
-        Task PlayCard() => _hubConnection.SendAsync("PlayCard",_state.Id, _state.SelectedCard);
+        Task PlayCard() => 
+            _hubConnection.SendAsync(
+                nameof(PlayCard),_state.Id, _state.SelectedCard);
 
         void GameStarted()
         {
