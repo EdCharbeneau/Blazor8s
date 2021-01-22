@@ -1,9 +1,6 @@
 ﻿@page "/table"
-@using Microsoft.AspNetCore.SignalR.Client
-@inject NavigationManager NavigationManager
-@implements IAsyncDisposable
 
-@if (HasJoinedGame)
+@if (_hasJoinedGame)
 {
     <h1>Joined Game</h1>
 }
@@ -12,7 +9,7 @@
     <div class="col">
         <h1>Players</h1>
         <ul class="list-group">
-            @foreach (var player in players)
+            @foreach (var player in _players)
             {
                 <li class="list-group-item">@player</li>
             }
@@ -22,80 +19,18 @@
         <h1>Draw Pile</h1>
 
         <div class="pcard back">
-            <span>@deckCount</span>
+            <span>@_deckCount</span>
         </div>
     </div>
     <div class="col">
         <h1>Discard Pile</h1>
-        @if (discardCard == null)
+        @if (_discardCard == null)
         {
             <span>Game not started</span>
         }
         else
         {
-            <PlayingCard Card="discardCard"></PlayingCard>
+            <PlayingCard Card="_discardCard"></PlayingCard>
         }
     </div>
 </div>
-
-@code {
-
-    List<string> players = new();
-    private HubConnection hubConnection;
-    bool HasJoinedGame = false;
-    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
-    Card discardCard;
-    int deckCount = 52;
-
-    protected override async Task OnInitializedAsync()
-    {
-        hubConnection = new HubConnectionBuilder()
-              .WithUrl(NavigationManager.ToAbsoluteUri("/gamehub"))
-              .Build();
-
-        hubConnection.On("JoinedGame", () =>
-        {
-            HasJoinedGame = true;
-            StateHasChanged();
-        });
-
-        hubConnection.On<string>(nameof(IGameHub.PlayerJoined), PlayerJoined);
-        hubConnection.On<int, Card>(nameof(IGameHub.GameStarted), GameStarted);
-        hubConnection.On<Card>(nameof(IGameHub.DiscardPlayed), DiscardPlayed);
-        hubConnection.On<int>(nameof(IGameHub.UpdateDeckCount), UpdateDeckCount);
-
-        await hubConnection.StartAsync();
-
-        await hubConnection.SendAsync("TableJoinGame");
-
-    }
-
-    void GameStarted(int count, Card card)
-    {
-        deckCount = count;
-        discardCard = card;
-        StateHasChanged();
-    }
-    void UpdateDeckCount(int count)
-    {
-        deckCount = count;
-        StateHasChanged();
-    }
-
-    void DiscardPlayed(Card card)
-    {
-        discardCard = card;
-        StateHasChanged();
-    }
-
-    void PlayerJoined(string player)
-    {
-        players.Add(player);
-        StateHasChanged();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await hubConnection.DisposeAsync();
-    }
-}

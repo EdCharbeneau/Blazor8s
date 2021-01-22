@@ -1,33 +1,31 @@
 @page "/game"
 
-<span>Cards:@state.Hand.Count()</span>
-<span>@state.SelectedCard</span>
+<span>Cards: @_state.Hand.Count</span>
+<span>@_state.SelectedCard</span>
 
-@if (!HasJoined)
+@if (!_hasJoined)
 {
     <div class="form-group">
         <label>
             User:
-            <input @bind="userName" />
+            <input @bind="_userName" />
         </label>
     </div>
 
-    <button @onclick="JoinGame" disabled="@(!IsConnected)">Join Game</button>
+    <button class="btn btn-primary" @onclick="JoinGame" disabled="@(!IsConnected)">Join Game</button>
 }
 
 @if (CanStartGame)
 {
-
-    <button @onclick="StartGame">Start Game</button>
-
+    <button class="btn btn-primary" @onclick="StartGame">Start Game</button>
 }
 
-@if (state.HasGameStarted)
+@if (_state.HasGameStarted)
 {
-    <button @onclick="DrawCard">Draw</button>
-    <button @onclick="PlayCard" disabled="@(state.SelectedCard is null)">Play</button>
+    <button class="btn btn-danger" @onclick="DrawCard">Draw</button>
+    <button class="btn btn-primary" @onclick="PlayCard" disabled="@(_state.SelectedCard is null)">Play</button>
 
-    @foreach (var card in state.Hand)
+    @foreach (var card in _state.Hand)
     {
         <PlayingCard Card="card" OnCardSelected="HandleSelectedCard" />
     }

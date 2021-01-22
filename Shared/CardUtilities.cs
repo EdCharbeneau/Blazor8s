@@ -1,45 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Blazor8s.Shared
 {
     public static class CardUtilities
     {
+        static readonly Random _random = new((int)DateTime.Now.Ticks);
+
         /// <summary>
         /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
         /// </summary>
-
-        public static List<T> Shuffle<T>(this IList<T> list)
+        public static List<T> Shuffle<T>(this IList<T> source)
         {
-            List<T> newList = new List<T>(list);
-            Random rng = new();
-            int n = newList.Count;
-            while (n > 1)
+            List<T> result = new(source);
+            var count = result.Count;
+
+            while (count > 1)
             {
-                n--;
-                int k = rng.Next(n + 1);
-                T value = newList[k];
-                newList[k] = newList[n];
-                newList[n] = value;
+                -- count;
+                var k = _random.Next(count + 1);
+                var value = result[k];
+                result[k] = result[count];
+                result[count] = value;
             }
-            return newList;
+
+            return result;
         }
 
-        public static List<Card> CreateDeck()
-        {
-            List<Card> deck = new();
-            foreach (CardSuit suit in Enum.GetValues(typeof(CardSuit)))
-            {
-                foreach (CardValue value in Enum.GetValues(typeof(CardValue)))
-                {
-                    deck.Add(new(value, suit));
-                }
-            }
-            return deck;
-        }
-
+        public static List<Card> GetShuffledDeck() =>
+            Enum.GetValues(typeof(CardSuit))
+                .Cast<CardSuit>()
+                .Select(suit =>
+                    (Suit: suit, Values: Enum.GetValues(typeof(CardValue)).Cast<CardValue>()))
+                .SelectMany(pair => pair.Values, (pair, value) => new Card(value, pair.Suit))
+                .ToList()
+                .Shuffle();
     }
 }
